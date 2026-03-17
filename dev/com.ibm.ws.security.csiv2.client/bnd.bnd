@@ -1,5 +1,5 @@
 #*******************************************************************************
-# Copyright (c) 2017, 2025 IBM Corporation and others.
+# Copyright 2017,2026 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License 2.0
 # which accompanies this distribution, and is available at
@@ -69,7 +69,7 @@ instrument.classesExcludes: com/ibm/ws/security/csiv2/client/internal/resources/
 	com.ibm.websphere.appserver.spi.logging;version=latest,\
 	com.ibm.websphere.appserver.spi.kernel.service;version=latest,\
 	com.ibm.ws.security.csiv2.common;version=latest,\
-	com.ibm.ws.org.apache.yoko.corba.spec.1.5;version=latest,\
+	io.openliberty.yoko.spec.corba;version=latest,\
 	com.ibm.wsspi.org.osgi.service.component.annotations;version=latest,\
 	com.ibm.ws.transport.iiop;version=latest, \
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest

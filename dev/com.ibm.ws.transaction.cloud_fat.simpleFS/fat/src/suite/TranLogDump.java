@@ -473,28 +473,23 @@ public class TranLogDump {
         int globalTrxIdLen = dis.readInt(); //how many bytes follow the global transaction id - 36
         int branchQualifierLen = dis.readInt(); //how many bytes follow the branch qualifier - 40
 
-        // Try to represent formatId as ASCII
-        byte[] fmtBytes = { (byte) (formatId >> 24), (byte) (formatId >> 16), (byte) (formatId >> 8), (byte) formatId };
-        boolean printable = true;
-        for (byte b : fmtBytes)
-            if (b < 0x20 || b > 0x7e) {
-                printable = false;
-                break;
-            }
-        String fmtLabel = printable ? " (\"" + new String(fmtBytes) + "\")" : "";
-
-        System.out.printf("       XID  formatId=0x%08X%s  globalTrxIdLen=%d  branchQualifierLen=%d%n",
-                          formatId, fmtLabel, globalTrxIdLen, branchQualifierLen);
-
-        //from XidIml.toBytes()
-        if (dis.available() >= globalTrxIdLen + branchQualifierLen) {
-            byte[] globalTrxId = new byte[globalTrxIdLen];
-            byte[] branchQualifier = new byte[branchQualifierLen];
-            dis.readFully(globalTrxId);
-            dis.readFully(branchQualifier);
-            System.out.printf("       globalTrxId : %s%n", hexWrapped(globalTrxId));
-            System.out.printf("       branchQualifier : %s%n", hexWrapped(branchQualifier));
+        if (dis.available() < globalTrxIdLen + branchQualifierLen) {
+            return;
         }
+
+        byte[] globalTrxId = new byte[globalTrxIdLen];
+        byte[] branchQualifier = new byte[branchQualifierLen];
+        dis.readFully(globalTrxId);
+        dis.readFully(branchQualifier);
+
+        String globalTrxIdHex = hex(globalTrxId);
+        String branchQualifierHex = hex(branchQualifier);
+
+        System.out.printf("       XID  formatId=0x%08X  globalTrxIdLen=%d  branchQualifierLen=%d%n",
+                          formatId, globalTrxIdLen, branchQualifierLen);
+
+        System.out.printf("       globalTrxId : %s%n", globalTrxIdHex);
+        System.out.printf("       branchQualifier : %s%n", branchQualifierHex);
     }
 
     private static String sectionName(int sectionId, boolean isPartnerlog) {
@@ -568,32 +563,10 @@ public class TranLogDump {
 
     //Hexinghelper
     private static String hex(byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return "(empty)";
-        }
-
-        StringBuilder sb = new StringBuilder(bytes.length * 3);
-        for (int i = 0; i < bytes.length; i++) {
-            if (i > 0) {
-                sb.append(' ');
-            }
-            sb.append(String.format("%02X", bytes[i] & 0xFF));
-        }
-        return sb.toString();
-    }
-
-    // Hex with line-wrapping at 16 bytes; continuation lines get the given prefix
-    static String hexWrapped(byte[] bytes) {
-        if (bytes == null || bytes.length == 0) {
-            return "(empty)";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            if (i > 0 && i % 16 == 0)
-                sb.append("\n").append("                ");
-            else if (i > 0)
-                sb.append(' ');
-            sb.append(String.format("%02X", bytes[i] & 0xFF));
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(Character.forDigit((b >> 4) & 0xf, 16));
+            sb.append(Character.forDigit(b & 0xf, 16));
         }
         return sb.toString();
     }

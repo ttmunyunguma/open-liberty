@@ -110,7 +110,7 @@ public class GlobalClassloadingConfiguration {
                 parentPackagesProp = null;
             }
         }
-        Set<String> mandatoryPackages = findSystemMandatoryPackages(parentPackagesProp, context.getBundle(Constants.SYSTEM_BUNDLE_LOCATION));
+        Set<String> mandatoryPackages = findSystemMandatoryPackages(context.getBundle(Constants.SYSTEM_BUNDLE_LOCATION));
         jvmPackages = new JVMPackages(parentProp, parentPackagesProp, context.getProperty(BootstrapConstants.INITPROP_BOOT_PACKAGES), mandatoryPackages);
         modified(properties);
     }
@@ -119,7 +119,12 @@ public class GlobalClassloadingConfiguration {
      * @param parentPackagesProp
      * @return
      */
-    private Set<String> findSystemMandatoryPackages(String parentPackagesProp, Bundle systemBundle) {
+    private Set<String> findSystemMandatoryPackages(Bundle systemBundle) {
+        if (!java9Plus) {
+            // On Java 8 we always delegate to the parent loader;
+            // We can avoid doing the system bundle wiring check for mandatory packages here.
+            return Collections.emptySet();
+        }
         BundleWiring systemWiring = systemBundle == null ? null : systemBundle.adapt(BundleWiring.class);
         if (systemWiring == null) {
             return Collections.emptySet();
@@ -129,7 +134,7 @@ public class GlobalClassloadingConfiguration {
         for (BundleCapability export : systemWiring.getCapabilities(PackageNamespace.PACKAGE_NAMESPACE)) {
             if (export.getDirectives().get(AbstractWiringNamespace.CAPABILITY_MANDATORY_DIRECTIVE) != null) {
                 // We don't care what the mandatory directive value is.  If it is anything but null
-                // we added the package name to the parent packages list to avoid filtering it.
+                // we add the package name to the mandatory packages to avoid filtering it.
                 result.add((String) export.getAttributes().get(PackageNamespace.PACKAGE_NAMESPACE));
             }
         }
@@ -340,7 +345,11 @@ public class GlobalClassloadingConfiguration {
             try {
                 // Unfortunately the java.class.path prop does not contain any JARs from java agents
                 Set<URL> systemManifests = new HashSet<>(Collections.list(ClassLoader.getSystemClassLoader().getResources("META-INF/MANIFEST.MF")));
+                // Remove any manifests from the platform (this may no longer be needed on Java 9+ because platform has only modules (with no manifests)
                 systemManifests.removeAll(Collections.list(platformClassLoader.getResources("META-INF/MANIFEST.MF")));
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "isDefaultClassPath found the following manifests on the JVM classpath: " + systemManifests);
+                }
                 for (URL url : systemManifests) {
                     // This is using fuzzy in matching.  We simply check for the expected names in the path.
                     // This isn't perfect matching since someone could use the following strings

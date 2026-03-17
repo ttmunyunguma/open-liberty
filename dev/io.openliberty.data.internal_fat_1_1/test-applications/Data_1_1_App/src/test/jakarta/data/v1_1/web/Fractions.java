@@ -34,6 +34,7 @@ import jakarta.data.page.CursoredPage;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
 import jakarta.data.repository.By;
+import jakarta.data.repository.Delete;
 import jakarta.data.repository.Find;
 import jakarta.data.repository.Insert;
 import jakarta.data.repository.Is;
@@ -48,11 +49,19 @@ import jakarta.data.restrict.Restriction;
  */
 @Repository(dataStore = "java:app/env/data/dbref")
 public interface Fractions {
+    int deleteByNameStartsWith(String prefix,
+                               Restriction<Fraction> filter);
+
     @Find
     Stream<Fraction> denominatoredUpTo //
     (@By(_Fraction.DENOMINATOR) NotNull<Integer> notNull,
      @By(_Fraction.DENOMINATOR) AtMost<Integer> max,
      Sort<?>... sorts);
+
+    @Delete
+    long discard(@By("denominator") AtLeast<Integer> minDenominator,
+                 @By("denominator") AtMost<Integer> maxDenominator,
+                 Restriction<Fraction> filter);
 
     @Find
     @OrderBy(_Fraction.NUMERATOR)
@@ -70,6 +79,10 @@ public interface Fractions {
     @Query("SELECT numerator, denominator - numerator" +
            " ORDER BY denominator - numerator DESC, numerator ASC")
     Page<Ratio> pageOfRatios(PageRequest pageReq);
+
+    @Delete
+    List<Fraction> remove(Like name,
+                          Restriction<Fraction> filter);
 
     @Query("SELECT NEW test.jakarta.data.v1_1.web.Ratio(" +
            "\t\tnumerator, denominator - numerator)" +

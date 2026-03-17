@@ -3539,7 +3539,7 @@
     <dependency>
       <groupId>org.eclipse.platform</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
-      <version>3.23.200</version>
+      <version>3.24.0</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.transformer</groupId>
@@ -3909,6 +3909,11 @@
     <dependency>
       <groupId>org.jboss.arquillian.core</groupId>
       <artifactId>arquillian-core-spi</artifactId>
+      <version>1.7.0.Alpha13</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.test</groupId>
+      <artifactId>arquillian-test-api</artifactId>
       <version>1.7.0.Alpha13</version>
     </dependency>
     <dependency>

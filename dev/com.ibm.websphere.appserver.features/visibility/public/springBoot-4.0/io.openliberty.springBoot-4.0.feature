@@ -7,6 +7,5 @@ IBM-Process-Types: server
 Subsystem-Name: Spring Boot Support 4.0
 -features=io.openliberty.springBootHandler-4.0, \
   com.ibm.websphere.appserver.eeCompatible-11.0
--bundles=io.openliberty.java17.internal
 kind=beta
 edition=core
